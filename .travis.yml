@@ -1,0 +1,41 @@
+language: python
+
+services:
+  - docker
+
+python:
+  # PyPy versions
+  - "3.5"
+  - "3.7"
+  - "pypy3.5"
+
+install:
+  - pip install python-coveralls
+  - pip install .
+
+# run tests
+script:
+  - pytest -v
+  - pip install .
+  - COMPOSE_PROJECT_NAME="certbotacmedns_$TRAVIS_JOB_ID" docker-compose run setup
+  - sleep 5
+  - docker build -t certbot_acmedns_client -f test/Dockerfile test/
+  - docker run -it --rm --network "certbotacmedns_${TRAVIS_JOB_ID}_default" --dns "10.151.40.100" -v $PWD:/certbot-dns-acmedns certbot_acmedns_client sh -c 'pip3 install -e /certbot-dns-acmedns && /certbot-dns-acmedns/test/e2e_test.sh'
+
+after_script:
+  - COMPOSE_PROJECT_NAME="certbotpdns_$TRAVIS_JOB_ID" docker-compose down
+
+jobs:
+  include:
+    - stage: deploy
+      script: skip
+      install: skip
+      deploy:
+        provider: pypi
+        user: $PYPI_USERNAME
+        password: $PYPI_PASSWORD
+        on:
+          tags: true
+
+after_success:
+  - coveralls

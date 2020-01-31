@@ -1,0 +1,135 @@
+version: "3"
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.151.40.0/24
+services:
+  pebble:
+    image: letsencrypt/pebble:v2.0.0
+    command: pebble -config /test/config/pebble-config.json -strict -dnsserver 10.151.40.100:53
+    ports:
+      # HTTPS ACME API
+      - 14000:14000
+    # volumes:
+    #   - ./test/config:/test/config
+    environment:
+      - PEBBLE_WFE_NONCEREJECT=0
+    networks:
+      default:
+        ipv4_address: 10.151.40.2
+    dns:
+      - 10.151.40.100
+  recursor:
+    image: pschiffe/pdns-recursor:alpine
+    environment:
+          PDNS_forward_zones: "auth.example.org=10.151.40.10, acme.com=10.151.40.3"
+          PDNS_loglevel: 9
+    networks:
+      default:
+        ipv4_address: 10.151.40.100
+    # ports:
+    # - "8053:53"
+    # - "8053:53/udp"
+  acmedns:
+    image: joohoi/acme-dns:latest
+    networks:
+      default:
+        ipv4_address: 10.151.40.10
+    dns:
+      - 10.151.40.100
+    depends_on:
+    - recursor
+    # ports:
+      # - "443:443"
+      # - "53:53"
+      # - "53:53/udp"
+      # - "80:80"
+    volumes:
+      - ./test/acmedns-server:/etc/acme-dns:ro
+      - ./test/acmedns-server/data:/var/lib/acme-dns
+  pdns:
+    image: psitrax/powerdns:v4.2.0
+    command:
+    - "--api"
+    - "--api-key=secret"
+    - "--webserver"
+    - "--webserver-address=0.0.0.0"
+    - "--webserver-allow-from=0.0.0.0/0"
+    - "--loglevel=10"
+    environment:
+      MYSQL_USER: root
+      MYSQL_PASS: secret
+    networks:
+      default:
+        ipv4_address: 10.151.40.3
+    depends_on:
+    - mysql
+    - recursor
+    # ports:
+    # - "8081:8081"
+    # # - "8053:53"
+    # # - "8053:53/udp"
+    dns:
+      - 10.151.40.100
+  mysql:
+    image: mariadb:10.4.7-bionic
+    networks:
+      default:
+        ipv4_address: 10.151.40.4
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+    dns:
+      - 10.151.40.100
+    depends_on:
+    - recursor
+  setup:
+    build:
+      context: ./test/
+      dockerfile: Dockerfile.setup
+    networks:
+      default:
+        ipv4_address: 10.151.40.200
+    dns:
+      - 10.151.40.100
+    depends_on:
+    - pdns
+    - recursor
+    - pebble
+    - acmedns
+    command:
+    - sh
+    - -c
+    - |
+      # check if pdns is ready
+      while true; do
+        echo "Checking if PDNS is up and responding ... "
+        if curl -s -f http://pdns:8081/api -H "X-API-Key: secret"; then
+          break
+        fi
+        sleep 1
+      done
+      # check if pebble is ready
+      while true; do
+        echo "Checking if Pebble is up and responding ... "
+        if curl -s -k -f https://pebble:14000/dir; then
+          break
+        fi
+        sleep 1
+      done
+      # check if acmedns is ready
+      while true; do
+        echo "Checking if ACME-DNS is up and responding ... "
+        if curl -s -f http://acmedns/health; then
+          break
+        fi
+        sleep 1
+      done
+      curl -s -X POST http://pdns:8081/api/v1/servers/localhost/zones \
+        -d '{"name": "acme.com.", "kind": "Native", "soa_edit_api": "", "nameservers": ["ns1.acme.com."]}' \
+        -H "X-API-Key: secret"
+      curl -s -X POST http://pdns:8081/api/v1/servers/localhost/zones \
+        -d '{"name": "in-addr.arpa.", "kind": "Native", "nameservers": ["ns1.acme.com."]}' \
+        -H "X-API-Key: secret"
