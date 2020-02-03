@@ -10,7 +10,7 @@ python:
   - "pypy3.5"
 
 install:
-  - pip install python-coveralls
+  - pip install python-coveralls pylint
   - pip install .
 
 # run tests
