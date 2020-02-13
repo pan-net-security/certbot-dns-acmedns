@@ -1,22 +1,19 @@
 """Tests for certbot_dns_acmedns.dns_acmedns"""
 
-import os
 import unittest
 import json
-
-import mock
-from requests.exceptions import HTTPError
-from certbot.compat import filesystem
-
-from certbot import errors
-from certbot.plugins import dns_test_common
-from certbot.plugins.dns_test_common import DOMAIN, KEY
-from acme import challenges
-
-from certbot.tests import util as test_util
 import tempfile
 
-ACMEDNS_REGISTRATION = { "something.acme.com": {
+import mock
+
+import certbot.compat.os as os
+from certbot.compat import filesystem
+from certbot import errors
+from certbot.plugins import dns_test_common
+from certbot.plugins.dns_test_common import DOMAIN
+from certbot.tests import util as test_util
+
+ACMEDNS_REGISTRATION = {"something.acme.com": {
   "username": "eabcdb41-d89f-4580-826f-3e62e9755ef2",
   "password": "pbAXVjlIOE01xbut7YnAbkhMQIkcwoHO0ek2j4Q0",
   "fulldomain": "d420c923-bbd7-4056-ab64-c3ca54c9b3cf.auth.example.org",
@@ -109,7 +106,7 @@ class AcmeDNSClientTest(unittest.TestCase):
 
         self.fake_client = mock.MagicMock()
 
-        self.ACMEDNS_REGISTRATION_FILE=tempfile.NamedTemporaryFile()
+        self.ACMEDNS_REGISTRATION_FILE = tempfile.NamedTemporaryFile()
         with open(self.ACMEDNS_REGISTRATION_FILE.name, 'w') as fp:
             json.dump(ACMEDNS_REGISTRATION, fp)
 
@@ -128,15 +125,17 @@ class AcmeDNSClientTest(unittest.TestCase):
         self.ACMEDNS_REGISTRATION_FILE.close()
 
     def test_add_txt_record(self):
-        self.assertEqual(self.acmedns_client.add_txt_record('_acme-challenge.something.acme.com', mock.ANY), None)
+        self.assertEqual(self.acmedns_client.add_txt_record('_acme-challenge.something.acme.com',
+															mock.ANY), None)
 
     def test_del_txt_record(self):
-        self.assertEqual(self.acmedns_client.del_txt_record('_acme-challenge.something.acme.com'), None)
+        self.assertEqual(self.acmedns_client.del_txt_record('_acme-challenge.something.acme.com'),
+															None)
 
     def test_missing_credentials(self):
         self.assertRaises(errors.PluginError,
                           self.acmedns_client.add_txt_record,
-                          '_acme-challenge.anotherdomain.acme.com',mock.ANY)
+                          '_acme-challenge.anotherdomain.acme.com', mock.ANY)
 
     def test_missing_domain_in_registration(self):
         MISSING_DOMAIN = {

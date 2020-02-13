@@ -10,11 +10,12 @@ python:
   - "pypy3.5"
 
 install:
-  - pip install python-coveralls
+  - pip install python-coveralls pylint
   - pip install .
 
 # run tests
 script:
+  - PYTHONPATH=${PWD} pylint certbot_dns_acmedns/
   - pytest -v
   - pip install .
   - COMPOSE_PROJECT_NAME="certbotacmedns_$TRAVIS_JOB_ID" docker-compose run setup

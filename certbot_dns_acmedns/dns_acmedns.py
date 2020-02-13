@@ -1,5 +1,6 @@
 """DNS Authenticator for ACME-DNS."""
 
+import json
 import logging
 
 import zope.interface
@@ -7,14 +8,10 @@ from certbot import interfaces
 from certbot import errors
 
 from certbot.plugins import dns_common
-from certbot.plugins import dns_common_lexicon
 
 from pyacmedns import Client, Storage
 
-import time
-import json
 
-import pprint as pprint
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +29,7 @@ class Authenticator(dns_common.DNSAuthenticator):
         self.ttl = 60
 
     @classmethod
-    def add_parser_arguments(cls, add):
+    def add_parser_arguments(cls, add): # pylint: disable=arguments-differ
         super(Authenticator, cls).add_parser_arguments(add)
         add('credentials', help='ACMEDNS Certbot credentials INI file.')
 
@@ -95,15 +92,15 @@ class _AcmeDNSClient(object):
         self.client = Client(api_url)
         self.account = None
 
-    def add_txt_record(self, record_name, record_content):
+    def add_txt_record(self, record_name, record_content): # pylint: disable=missing-docstring
         self._load_credentials(self._get_domain(record_name))
         self.client.update_txt_record(self.account, record_content)
 
-    def del_txt_record(self, record_name):
+    def del_txt_record(self, record_name): # pylint: disable=missing-docstring, unused-argument
         return
 
     def _get_domain(self, validation_name):
-        ACME_CHALLENGE_PREFIX="_acme-challenge."
+        ACME_CHALLENGE_PREFIX = "_acme-challenge."
         if isinstance(validation_name, str):
             if validation_name.startswith(ACME_CHALLENGE_PREFIX):
                 return validation_name[len(ACME_CHALLENGE_PREFIX):]
@@ -142,7 +139,8 @@ class _AcmeDNSClient(object):
                             raise errors.PluginError('{}: appears to not contain domain as key. '
                                                     'Make sure the JSON is a dictionary and each '
                                                     'where the key is the domain and the value is '
-                                                    'the ACME-DNS registration returned for that domain.'
+                                                    'the ACME-DNS registration returned for that '
+													'domain.'
                                                     .format(self.credentials_file))
                 except json.JSONDecodeError:
                     raise errors.PluginError('{}: unable to parse json file. Make '
