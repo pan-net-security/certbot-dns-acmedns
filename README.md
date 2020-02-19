@@ -11,9 +11,14 @@ certbot-dns-acmedns
 
 ACME-DNS DNS Authenticator plugin for [Certbot](https://certbot.eff.org/).
 
+ACME-DNS is a simplified DNS server with a RESTful HTTP API to provide a simple way to automate ACME DNS challenges. Explaining details of ACME-DNS is not part of this repo, we assume you have running ACME-DNS server. To understand what ACME-DNS is and for details on how to run/use ACME-DNS server see [ACME-DNS repo.](https://github.com/joohoi/acme-dns)
+
 This plugin is built from the ground up and follows the development style and life-cycle
-of other `certbot-dns-*` plugins found in the
+of other `certbot-dns-*` plugins found in the individual directories of the
 [Official Certbot Repository](https://github.com/certbot/certbot).
+
+For general information about Certbot plugin development see [Certbot developer documentation.](https://certbot.eff.org/docs/contributing.html#plugin-architecture)
+
 
 Installation
 ------------
