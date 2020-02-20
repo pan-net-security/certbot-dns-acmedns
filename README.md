@@ -129,3 +129,9 @@ License
 --------
 
 Apache License Version 2.0, January 2004
+
+
+Authors
+-------
+
+[DT Pan-Net s.r.o](https://github.com/pan-net-security)
