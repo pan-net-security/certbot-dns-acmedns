@@ -1,7 +1,6 @@
 [![Build Status](https://travis-ci.com/pan-net-security/certbot-dns-acmedns.svg?branch=master)](https://travis-ci.com/pan-net-security/certbot-dns-acmedns)
 [![Coverage Status](https://coveralls.io/repos/github/pan-net-security/certbot-dns-acmedns/badge.svg?branch=master)](https://coveralls.io/github/pan-net-security/certbot-dns-acmedns?branch=master)
 ![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/github/pan-net-security/certbot-dns-acmedns.svg)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=pan-net-security_certbot-dns-acmedns&metric=alert_status)](https://sonarcloud.io/dashboard?id=pan-net-security_certbot-dns-acmedns)
 ![PyPI - Status](https://img.shields.io/pypi/status/certbot-dns-acmedns.svg)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/certbot-dns-acmedns.svg)
 
